@@ -6,6 +6,6 @@
     "deploy": {
       "numReplicas": 1,
       "restartPolicyType": "NEVER",
-      "cronSchedule": "0 8 * * *" 
+      "cronSchedule": "30 8 * * *" 
     }
-  }
+}
