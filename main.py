@@ -4,7 +4,7 @@ from src.database import save_funding_data
 from src.notifications import send_slack_notification
 
 FEEDS = ["https://techcrunch.com/feed/", "https://elreferente.es/feed/"]
-KEYWORDS = ["funding", "round", "levantar", "ronda", "invest"]
+KEYWORDS = ["funding", "round", "levantar", "ronda", "invest", "busca", "objetivo", "abierta", "raising"]
 
 def main():
     print("--- [INICIO] Ejecutando bot de noticias ---")
