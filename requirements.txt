@@ -1,5 +1,6 @@
 feedparser
 requests
+google-genai             # La versión moderna
 cloud-sql-python-connector[pg8000]
 SQLAlchemy
-google-generativeai
+google-auth              # Necesaria para procesar el JSON de credenciales
