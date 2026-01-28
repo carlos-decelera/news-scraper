@@ -1,25 +1,29 @@
 import os
 import json
-from google.cloud.sql.connector import Connector
-import psycopg2
+from google.cloud.sql.connector import Connector, IPTypes
+import sqlalchemy
 
 def get_db_connection():
-    # 1. Cargamos el JSON desde la variable de entorno
-    creds_info = json.loads(os.getenv("GOOGLE_CREDENTIALS_JSON"))
+    # Cargamos las credenciales desde la variable de entorno de Railway
+    creds_dict = json.loads(os.getenv("GOOGLE_CREDENTIALS_JSON"))
     
-    # 2. Inicializamos el conector de Google Cloud SQL
-    # Esto elimina la necesidad de abrir IPs o usar SSL manual
-    connector = Connector(credentials_info=creds_info)
+    # Inicializamos el conector con las credenciales
+    connector = Connector(credentials_info=creds_dict)
 
     def getconn():
         conn = connector.connect(
-            os.getenv("INSTANCE_CONNECTION_NAME"), # Ej: "proyecto:region:instancia"
+            os.getenv("INSTANCE_CONNECTION_NAME"),
             "pg8000",
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD"),
-            db=os.getenv("DB_NAME")
+            db=os.getenv("DB_NAME"),
+            ip_type=IPTypes.PUBLIC  # Usa la IP pública de tu Cloud SQL
         )
         return conn
 
-    # 3. Retornamos la conexión (usando pg8000 que es más compatible con el conector)
-    return getconn()
+    # Creamos un motor de base de datos (Engine) de SQLAlchemy para manejar el pool
+    pool = sqlalchemy.create_engine(
+        "postgresql+pg8000://",
+        creator=getconn,
+    )
+    return pool.connect()
