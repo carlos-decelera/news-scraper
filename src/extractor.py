@@ -23,7 +23,7 @@ def extract_funding_info(url):
     
     try:
         response = client.models.generate_content(
-            model="gemini-1.5-flash-001",
+            model="models/gemini-3-flash-preview",
             contents=prompt,
             config={'response_mime_type': 'application/json'}
         )
