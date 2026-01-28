@@ -1,36 +1,25 @@
-import psycopg2
 import os
+import json
+from google.cloud.sql.connector import Connector
+import psycopg2
 
 def get_db_connection():
-    return psycopg2.connect(
-        host=os.getenv("DB_HOST"),
-        database=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        port=os.getenv("DB_PORT")
-    )
+    # 1. Cargamos el JSON desde la variable de entorno
+    creds_info = json.loads(os.getenv("GOOGLE_CREDENTIALS_JSON"))
+    
+    # 2. Inicializamos el conector de Google Cloud SQL
+    # Esto elimina la necesidad de abrir IPs o usar SSL manual
+    connector = Connector(credentials_info=creds_info)
 
-def save_funding_data(data):
-    conn = get_db_connection()
-    is_new = False
-    try:
-        with conn.cursor() as cur:
-            # El "ON CONFLICT DO NOTHING" es clave para no repetir
-            query = """
-            INSERT INTO funding_rounds (company_name, amount, currency, round_type, source_url)
-            VALUES (%s, %s, %s, %s, %s)
-            ON CONFLICT (source_url) DO NOTHING;
-            """
-            cur.execute(query, (
-                data.get('company_name'),
-                data.get('amount'),
-                data.get('currency'),
-                data.get('round_type'),
-                data.get('source_url')
-            ))
-            if cur.rowcount > 0:
-                is_new = True
-            conn.commit()
-    finally:
-        conn.close()
-    return is_new
+    def getconn():
+        conn = connector.connect(
+            os.getenv("INSTANCE_CONNECTION_NAME"), # Ej: "proyecto:region:instancia"
+            "pg8000",
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            db=os.getenv("DB_NAME")
+        )
+        return conn
+
+    # 3. Retornamos la conexión (usando pg8000 que es más compatible con el conector)
+    return getconn()
