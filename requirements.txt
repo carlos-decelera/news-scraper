@@ -1,4 +1,5 @@
-requests
 feedparser
-psycopg2-binary
+requests
+cloud-sql-python-connector[pg8000]
+SQLAlchemy
 google-generativeai
