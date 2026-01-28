@@ -21,10 +21,16 @@ def extract_funding_info(url):
         f"Texto: {content}"
     )
     
-    response = client.models.generate_content(
-        model="gemini-1.5-flash",
-        contents=prompt,
-        config={'response_mime_type': 'application/json'}
-    )
-    
-    return json.loads(response.text)
+    try:
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=prompt,
+            config={'response_mime_type': 'application/json'}
+        )
+        return json.loads(response.text)
+    except Exception as e:
+        # Esto te dirá en los logs de Railway el motivo exacto del fallo
+        print(f"--- ERROR DE GEMINI ---")
+        print(f"Tipo de error: {type(e).__name__}")
+        print(f"Detalle: {e}")
+        return None
