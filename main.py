@@ -18,7 +18,7 @@ def main():
         
         # Si save_funding_data devuelve False, es que la URL ya existe en la BD
         if save_funding_data(temp_data):
-            time.sleep(6)
+            time.sleep(10)
             print(f"    [NUEVO] El artículo no estaba en la BD. Analizando con IA...")
             info = extract_funding_info(art['url'])
             
