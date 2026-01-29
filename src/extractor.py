@@ -17,20 +17,20 @@ def extract_funding_info(url):
 
     # Prompt optimizado
     prompt = f"""
-    Eres un analista experto en Venture Capital. Tu tarea es extraer información precisa sobre rondas de financiación desde el texto de una noticia.
+    Eres un analista experto en Venture Capital. Tu tarea es extraer información precisa desde el texto de una noticia.
 
     INSTRUCCIONES:
-    1. Identifica si la noticia habla de una ronda que se ha CERRADO (completada) o que se ha ABIERTO (la empresa está buscando inversores).
-    2. El nombre de la empresa debe ser el nombre propio, no descripciones.
-    3. Si el monto no es exacto, usa el número más cercano (ej: "más de 1M" -> 1000000).
-    4. El campo 'status' debe ser estrictamente "abierta" o "cerrada".
+    1. Analiza si el texto describe una ronda de financiación.
+    2. Identifica si la ronda se ha CERRADO (completada) o está ABIERTA (buscando inversores).
+    3. IMPORTANTE: Convierte SIEMPRE el monto a un número entero (ej: "1.5M" -> 1500000, "500k" -> 500000). Si no hay monto, usa null.
+    4. Si la moneda es $, convierte mentalmente a € (aprox) o mantén la original pero indícalo en 'currency'.
 
     FORMATO DE SALIDA (JSON):
     {{
-        "company_name": "Nombre",
-        "amount": 123456,
-        "currency": "EUR/USD",
-        "round_type": "Seed, Serie A, Bridge, etc.",
+        "company_name": "Nombre de la Startup",
+        "amount": 1500000,
+        "currency": "EUR",
+        "round_type": "Seed, Serie A, etc.",
         "status": "abierta/cerrada"
     }}
 
@@ -40,7 +40,7 @@ def extract_funding_info(url):
     
     try:
         response = client.models.generate_content(
-            model="models/gemini-3-flash-preview",
+            model="gemini-2.0-flash",
             contents=prompt,
             config={'response_mime_type': 'application/json'}
         )
