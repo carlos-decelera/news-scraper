@@ -8,9 +8,16 @@ def extract_funding_info(url):
     
     # Jina Reader para limpiar el HTML
     jina_url = f"https://r.jina.ai/{url}"
+    JINA_KEY = os.getenv("JINA_KEY")
+    headers = {
+        "Authorization": f"Bearer {JINA_KEY}",
+        "X-Return-Format": "markdown",
+        "X-Wait-For-Selector": "article",
+        "X-With-Generated-Alt": "true"
+    }
     try:
-        response_jina = requests.get(jina_url, timeout=10)
-        content = response_jina.text[:12000] # Un poco más de margen
+        response_jina = requests.get(jina_url, headers=headers, timeout=20)
+        content = response_jina.text[:12000]
     except Exception as e:
         print(f"Error al leer con Jina: {e}")
         return None
