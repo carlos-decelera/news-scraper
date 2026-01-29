@@ -4,7 +4,7 @@ from src.database import save_funding_data
 from src.notifications import send_slack_notification
 import time
 
-FEEDS = ["https://techcrunch.com/feed/", "https://elreferente.es/feed/"]
+FEEDS = ["https://elreferente.es/feed/", "https://elreferente.es/feed/?paged=2"]
 KEYWORDS = ["funding", "round", "levantar", "ronda", "invest", "busca", "objetivo", "abierta", "raising"]
 
 def main():
