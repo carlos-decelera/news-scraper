@@ -16,7 +16,7 @@ def extract_funding_info(url):
         "X-With-Generated-Alt": "true"
     }
     try:
-        response_jina = requests.get(jina_url, headers=headers, timeout=20)
+        response_jina = requests.get(jina_url, headers=headers, timeout=30)
         content = response_jina.text[:8000]
     except Exception as e:
         print(f"Error al leer con Jina: {e}")
