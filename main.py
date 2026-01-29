@@ -2,6 +2,7 @@ from src.crawler import fetch_relevant_articles
 from src.extractor import extract_funding_info
 from src.database import save_funding_data
 from src.notifications import send_slack_notification
+import time
 
 FEEDS = ["https://techcrunch.com/feed/", "https://elreferente.es/feed/"]
 KEYWORDS = ["funding", "round", "levantar", "ronda", "invest", "busca", "objetivo", "abierta", "raising"]
@@ -17,6 +18,7 @@ def main():
         
         # Si save_funding_data devuelve False, es que la URL ya existe en la BD
         if save_funding_data(temp_data):
+            time.sleep(6)
             print(f"    [NUEVO] El artículo no estaba en la BD. Analizando con IA...")
             info = extract_funding_info(art['url'])
             

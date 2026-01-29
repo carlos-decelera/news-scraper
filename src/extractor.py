@@ -17,7 +17,7 @@ def extract_funding_info(url):
     }
     try:
         response_jina = requests.get(jina_url, headers=headers, timeout=20)
-        content = response_jina.text[:12000]
+        content = response_jina.text[:8000]
     except Exception as e:
         print(f"Error al leer con Jina: {e}")
         return None
@@ -47,7 +47,7 @@ def extract_funding_info(url):
     
     try:
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-1.5-flash",
             contents=prompt,
             config={'response_mime_type': 'application/json'}
         )
