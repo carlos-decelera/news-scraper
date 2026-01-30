@@ -1,50 +1,63 @@
-from google import genai
 import os
 import json
-import requests # Faltaba este import
+import requests
+from google import genai
 
 def extract_funding_info(url):
     client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    content = ""
     
-    # Jina Reader para limpiar el HTML
+    # 1. INTENTO CON JINA READER
     jina_url = f"https://r.jina.ai/{url}"
-    JINA_KEY = os.getenv("JINA_KEY")
     headers = {
-        "Authorization": f"Bearer {JINA_KEY}",
-        "X-Return-Format": "markdown",
-        "X-Wait-For-Selector": "article",
-        "X-With-Generated-Alt": "true"
+        "Authorization": f"Bearer {os.getenv('JINA_KEY')}",
+        "X-Return-Format": "markdown"
     }
+    
     try:
-        response_jina = requests.get(jina_url, headers=headers, timeout=30)
-        content = response_jina.text[:8000]
+        print(f"--- Intentando extraer con Jina: {url} ---")
+        response_jina = requests.get(jina_url, headers=headers, timeout=40) # Aumentado a 40s
+        response_jina.raise_for_status()
+        content = response_jina.text
     except Exception as e:
-        print(f"Error al leer con Jina: {e}")
-        return None
+        print(f"--- JINA FALLÓ: {e}. Intentando descarga directa... ---")
+        # 2. FALLBACK: DESCARGA DIRECTA (Si Jina cae o da timeout)
+        try:
+            direct_headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            }
+            direct_res = requests.get(url, headers=direct_headers, timeout=15)
+            content = direct_res.text # Obtenemos el HTML crudo (Gemini puede digerirlo)
+        except Exception as e_direct:
+            print(f"--- ERROR CRÍTICO: No se pudo obtener el contenido de ninguna forma: {e_direct} ---")
+            return None
 
-    # Prompt optimizado
+    # Recortar contenido para no exceder tokens innecesariamente
+    content = content[:15000] 
+
     prompt = f"""
-    Eres un analista experto en Venture Capital. Tu tarea es extraer información precisa desde el texto de una noticia.
+    Eres un analista experto en Venture Capital. Tu tarea es extraer información precisa desde el texto proporcionado.
+    Si el texto es HTML crudo, ignora las etiquetas y busca la información relevante.
 
     INSTRUCCIONES:
     1. Analiza si el texto describe una ronda de financiación.
-    2. Identifica si la ronda se ha CERRADO (completada) o está ABIERTA (buscando inversores).
-    3. IMPORTANTE: Convierte SIEMPRE el monto a un número entero (ej: "1.5M" -> 1500000, "500k" -> 500000). Si no hay monto, usa null.
-    4. Si la moneda es $, convierte mentalmente a € (aprox) o mantén la original pero indícalo en 'currency'.
+    2. Identifica si la ronda se ha CERRADO o está ABIERTA.
+    3. Convierte el monto a número entero (ej: "1.2M" -> 1200000).
+    4. Si no hay información clara de una ronda, devuelve un JSON con campos null.
 
     FORMATO DE SALIDA (JSON):
     {{
-        "company_name": "Nombre de la Startup",
-        "amount": 1500000,
+        "company_name": "Nombre",
+        "amount": 1000000,
         "currency": "EUR",
-        "round_type": "Seed, Serie A, etc.",
+        "round_type": "Pre-seed/Seed/Serie A/etc",
         "status": "abierta/cerrada"
     }}
 
-    TEXTO A ANALIZAR:
+    CONTENIDO:
     {content}
     """
-    
+
     try:
         response = client.models.generate_content(
             model="gemini-2.0-flash",
