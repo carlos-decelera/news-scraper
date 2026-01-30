@@ -72,3 +72,21 @@ def save_funding_data(data):
                 is_new = True
                 
     return is_new
+
+def check_if_url_exists(url):
+    """Verifica si una URL ya está en la base de datos."""
+    with engine.connect() as conn:
+        query = sqlalchemy.text("SELECT 1 FROM funding_rounds WHERE source_url = :url LIMIT 1")
+        result = conn.execute(query, {"url": url})
+        return result.fetchone() is not None
+
+def save_empty_article(url):
+    """Guarda una URL con datos vacíos para marcarla como 'procesada'."""
+    with engine.connect() as conn:
+        with conn.begin():
+            query = sqlalchemy.text("""
+                INSERT INTO funding_rounds (source_url, company_name) 
+                VALUES (:url, 'N/A') 
+                ON CONFLICT (source_url) DO NOTHING
+            """)
+            conn.execute(query, {"url": url})
